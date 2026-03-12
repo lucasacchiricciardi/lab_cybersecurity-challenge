@@ -1,191 +1,262 @@
-import React, { useState } from 'react';
-import { Shield, Terminal, Network, Server, Lock, Search, AlertTriangle, FileCode, Users, Cpu, Activity, CheckCircle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Challenges</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Animazione per l'apertura della modale */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30">
 
-// Dati delle sfide: i criteri per l'LLM (Expected_Concepts) sono stati rimossi.
-const challenges = [
-  {
-    id: "CHAL-01",
-    title: "Profilazione APT: Cozy Bear vs Lazarus",
-    icon: <Users className="w-6 h-6 text-blue-400" />,
-    description: "Sei un analista SOC. Usa fonti OSINT e MITRE ATT&CK per redigere un report comparativo tra APT29 e Lazarus. 1. Identifica la motivazione principale di ciascuno. 2. Descrivi due Tecniche (con ID MITRE) usate per Initial Access o Execution. 3. Spiega come un XDR mitiga una di queste tecniche."
-  },
-  {
-    id: "CHAL-02",
-    title: "Analisi Header e Spear-Phishing",
-    icon: <Search className="w-6 h-6 text-purple-400" />,
-    description: "Ricevi un'email sospetta dal CEO che chiede un bonifico urgente. Analizza teoricamente gli header SMTP. Spiega operativamente come funzionano i record SPF e DKIM e come un attaccante potrebbe bypassare i filtri se questi non sono configurati in modalità 'hard fail'."
-  },
-  {
-    id: "CHAL-03",
-    title: "Triage Scansione Nmap",
-    icon: <Terminal className="w-6 h-6 text-green-400" />,
-    description: "Hai eseguito nmap -sS -sV -p- 10.10.20.5. Il server espone la 22 (SSH), 80 (HTTP) e la 3306 (MySQL) esposta su WAN. Ipotizza la topologia e descrivi i prossimi tre step esatti che un attaccante farebbe per compromettere il database."
-  },
-  {
-    id: "CHAL-04",
-    title: "Vulnerability Management e Contesto",
-    icon: <AlertTriangle className="w-6 h-6 text-yellow-400" />,
-    description: "Nessus rileva due falle: CVE-A (CVSS 9.8) su un server di test isolato in una VLAN senza accesso a internet, e CVE-B (CVSS 6.5) sul server NodeJS di produzione esposto al pubblico. Definisci l'ordine di patching e giustifica la scelta."
-  },
-  {
-    id: "CHAL-05",
-    title: "OWASP Code Review (Node.js)",
-    icon: <FileCode className="w-6 h-6 text-orange-400" />,
-    description: "Un dev junior ha scritto questa query su backend NodeJS: db.query(\"SELECT * FROM users WHERE username = '\" + req.body.user + \"'\"). Identifica la vulnerabilità OWASP, spiega il potenziale impatto e scrivi la remediation corretta."
-  },
-  {
-    id: "CHAL-06",
-    title: "Analisi Exploit Metasploit",
-    icon: <Cpu className="w-6 h-6 text-red-400" />,
-    description: "Analizza un attacco dove viene usato il modulo exploit/windows/smb/ms17_010_eternalblue. Spiega tecnicamente quale vulnerabilità viene sfruttata, come ottiene l'esecuzione di codice e come un IPS di rete posizionato sul perimetro reagirebbe."
-  },
-  {
-    id: "CHAL-07",
-    title: "Ridisegno Architettura di Rete",
-    icon: <Network className="w-6 h-6 text-cyan-400" />,
-    description: "Un'azienda ha uffici, server web e database tutti sulla subnet 192.168.1.0/24 (Switch L2 puro). Ridisegna l'architettura spiegando come e dove implementeresti VLAN, routing Inter-VLAN (L3) e policy di Firewalling per segmentare i database."
-  },
-  {
-    id: "CHAL-08",
-    title: "Privilege Escalation su Linux",
-    icon: <Server className="w-6 h-6 text-indigo-400" />,
-    description: "Durante un penetration test su un server Linux, esegui find / -perm -4000 2>/dev/null e noti che /usr/bin/nmap ha il bit SUID impostato. Spiega perché questa è una vulnerabilità critica e come otterresti una shell di root."
-  },
-  {
-    id: "CHAL-09",
-    title: "Mappatura Incident Response",
-    icon: <Activity className="w-6 h-6 text-pink-400" />,
-    description: "Leggi questo scenario: 'Un dipendente clicca un link, scarica un file ZIP con uno script. Lo script crea un task pianificato su Windows, contatta un IP russo e invia l'archivio delle password'. Mappa i passaggi su 4 tattiche del MITRE ATT&CK."
-  },
-  {
-    id: "CHAL-10",
-    title: "Analisi Log XDR (PowerShell)",
-    icon: <Search className="w-6 h-6 text-emerald-400" />,
-    description: "Il sistema XDR genera un alert critico: powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand JABzAD0ATgBlAHcALQBPAGIAagBl... Decodifica logicamente l'intento dell'attaccante e definisci l'azione di contenimento immediata."
-  },
-  {
-    id: "CHAL-11",
-    title: "Compliance e Notifica Ransomware",
-    icon: <Lock className="w-6 h-6 text-rose-400" />,
-    description: "L'azienda subisce un ransomware che cifra i dati dei clienti. Agendo come CISO, basandoti sulle direttive europee (NIS2/GDPR), stila una bozza dei 3 punti fondamentali da comunicare al CSIRT Nazionale/Garante entro le prime 72 ore."
-  },
-  {
-    id: "CHAL-12",
-    title: "Principi Operativi di Sicurezza",
-    icon: <CheckCircle className="w-6 h-6 text-blue-500" />,
-    description: "Ti viene affidato un server web Linux critico. Spiega dettagliatamente come applicheresti la triade 'Safety first, little often, double check' alle procedure di patching, gestione dei permessi e analisi dei log per il prossimo anno."
-  }
-];
-
-export default function App() {
-  const [selectedChallenge, setSelectedChallenge] = useState(null);
-
-  // Modal componente per visualizzare i dettagli
-  const Modal = ({ challenge, onClose }) => {
-    if (!challenge) return null;
-    return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-        <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
-            <div className="flex items-center gap-3">
-              {challenge.icon}
-              <h2 className="text-xl font-bold text-slate-100">{challenge.id}: {challenge.title}</h2>
-            </div>
-            <button 
-              onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="p-6">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Scenario & Obiettivo</h3>
-            <p className="text-slate-300 leading-relaxed">
-              {challenge.description}
-            </p>
-            <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end gap-3">
-              <button 
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors"
-              >
-                Chiudi
-              </button>
-              <button 
-                onClick={() => alert("Qui puoi inserire il link dinamico al form n8n: n8n.tuodominio.it/form?challenge=" + challenge.id)}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors flex items-center gap-2"
-              >
-                Vai al Form n8n
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30">
-      
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-blue-500" />
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Cybersecurity Training</h1>
-              <p className="text-sm text-slate-400">Skill Assessment Challenges</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-10 max-w-3xl">
-          <h2 className="text-3xl font-bold text-white mb-4">Seleziona una Challenge</h2>
-          <p className="text-slate-400 text-lg">
-            Scegli uno degli scenari sottostanti. Leggi attentamente il contesto, fai le tue ricerche in autonomia utilizzando fonti OSINT, documentazione ufficiale e motori di ricerca, quindi compila il form di valutazione. Lavora individualmente.
-          </p>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {challenges.map((chal) => (
-            <div 
-              key={chal.id}
-              onClick={() => setSelectedChallenge(chal)}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all cursor-pointer group flex flex-col h-full shadow-lg"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 group-hover:border-slate-700 transition-colors">
-                  {chal.icon}
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center gap-3">
+                <i data-lucide="shield" class="w-8 h-8 text-blue-500"></i>
+                <div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight">Cybersecurity Training</h1>
+                    <p class="text-sm text-slate-400">Skill Assessment Challenges</p>
                 </div>
-                <span className="text-xs font-mono font-medium text-slate-500 bg-slate-950 px-2 py-1 rounded border border-slate-800">
-                  {chal.id}
-                </span>
-              </div>
-              <h3 className="text-lg font-bold text-slate-100 mb-2 line-clamp-2">
-                {chal.title}
-              </h3>
-              <p className="text-sm text-slate-400 line-clamp-3 mt-auto">
-                {chal.description}
-              </p>
             </div>
-          ))}
         </div>
-      </main>
+    </header>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 py-8 mt-12 text-center text-sm text-slate-500">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-10 max-w-3xl">
+            <h2 class="text-3xl font-bold text-white mb-4">Seleziona una Challenge</h2>
+            <p class="text-slate-400 text-lg">
+                Scegli uno degli scenari sottostanti. Leggi attentamente il contesto, fai le tue ricerche in autonomia utilizzando fonti OSINT, documentazione ufficiale e motori di ricerca, quindi compila il form di valutazione. Lavora individualmente.
+            </p>
+        </div>
+
+        <!-- Grid -->
+        <div id="challenges-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Le card verranno inserite qui da JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-8 mt-12 text-center text-sm text-slate-500">
         <p>Safety first, little often, double check.</p>
-        <p className="mt-1">Infrastruttura di valutazione gestita tramite n8n.</p>
-      </footer>
+        <p class="mt-1">Infrastruttura di valutazione gestita tramite n8n.</p>
+    </footer>
 
-      {/* Modal View */}
-      <Modal 
-        challenge={selectedChallenge} 
-        onClose={() => setSelectedChallenge(null)} 
-      />
+    <!-- Modal View -->
+    <div id="challenge-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon-container"></div>
+                    <h2 class="text-xl font-bold text-slate-100">
+                        <span id="modal-id"></span>: <span id="modal-title"></span>
+                    </h2>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors focus:outline-none">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Scenario & Obiettivo</h3>
+                <p id="modal-desc" class="text-slate-300 leading-relaxed"></p>
+                <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end gap-3">
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors focus:outline-none">
+                        Chiudi
+                    </button>
+                    <button id="modal-action-btn" class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors flex items-center gap-2 focus:outline-none">
+                        Vai al Form n8n
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-  );
-}
+
+    <!-- Application Logic -->
+    <script>
+        // Dati delle sfide (Expected_Concepts rimossi come da specifiche)
+        const challenges = [
+            {
+                id: "CHAL-01",
+                title: "Profilazione APT: Cozy Bear vs Lazarus",
+                icon: "users",
+                iconColor: "text-blue-400",
+                description: "Sei un analista SOC. Usa fonti OSINT e MITRE ATT&CK per redigere un report comparativo tra APT29 e Lazarus. 1. Identifica la motivazione principale di ciascuno. 2. Descrivi due Tecniche (con ID MITRE) usate per Initial Access o Execution. 3. Spiega come un XDR mitiga una di queste tecniche."
+            },
+            {
+                id: "CHAL-02",
+                title: "Analisi Header e Spear-Phishing",
+                icon: "search",
+                iconColor: "text-purple-400",
+                description: "Ricevi un'email sospetta dal CEO che chiede un bonifico urgente. Analizza teoricamente gli header SMTP. Spiega operativamente come funzionano i record SPF e DKIM e come un attaccante potrebbe bypassare i filtri se questi non sono configurati in modalità 'hard fail'."
+            },
+            {
+                id: "CHAL-03",
+                title: "Triage Scansione Nmap",
+                icon: "terminal",
+                iconColor: "text-green-400",
+                description: "Hai eseguito nmap -sS -sV -p- 10.10.20.5. Il server espone la 22 (SSH), 80 (HTTP) e la 3306 (MySQL) esposta su WAN. Ipotizza la topologia e descrivi i prossimi tre step esatti che un attaccante farebbe per compromettere il database."
+            },
+            {
+                id: "CHAL-04",
+                title: "Vulnerability Management e Contesto",
+                icon: "alert-triangle",
+                iconColor: "text-yellow-400",
+                description: "Nessus rileva due falle: CVE-A (CVSS 9.8) su un server di test isolato in una VLAN senza accesso a internet, e CVE-B (CVSS 6.5) sul server NodeJS di produzione esposto al pubblico. Definisci l'ordine di patching e giustifica la scelta."
+            },
+            {
+                id: "CHAL-05",
+                title: "OWASP Code Review (Node.js)",
+                icon: "file-code",
+                iconColor: "text-orange-400",
+                description: "Un dev junior ha scritto questa query su backend NodeJS: db.query(\"SELECT * FROM users WHERE username = '\" + req.body.user + \"'\"). Identifica la vulnerabilità OWASP, spiega il potenziale impatto e scrivi la remediation corretta."
+            },
+            {
+                id: "CHAL-06",
+                title: "Analisi Exploit Metasploit",
+                icon: "cpu",
+                iconColor: "text-red-400",
+                description: "Analizza un attacco dove viene usato il modulo exploit/windows/smb/ms17_010_eternalblue. Spiega tecnicamente quale vulnerabilità viene sfruttata, come ottiene l'esecuzione di codice e come un IPS di rete posizionato sul perimetro reagirebbe."
+            },
+            {
+                id: "CHAL-07",
+                title: "Ridisegno Architettura di Rete",
+                icon: "network",
+                iconColor: "text-cyan-400",
+                description: "Un'azienda ha uffici, server web e database tutti sulla subnet 192.168.1.0/24 (Switch L2 puro). Ridisegna l'architettura spiegando come e dove implementeresti VLAN, routing Inter-VLAN (L3) e policy di Firewalling per segmentare i database."
+            },
+            {
+                id: "CHAL-08",
+                title: "Privilege Escalation su Linux",
+                icon: "server",
+                iconColor: "text-indigo-400",
+                description: "Durante un penetration test su un server Linux, esegui find / -perm -4000 2>/dev/null e noti che /usr/bin/nmap ha il bit SUID impostato. Spiega perché questa è una vulnerabilità critica e come otterresti una shell di root."
+            },
+            {
+                id: "CHAL-09",
+                title: "Mappatura Incident Response",
+                icon: "activity",
+                iconColor: "text-pink-400",
+                description: "Leggi questo scenario: 'Un dipendente clicca un link, scarica un file ZIP con uno script. Lo script crea un task pianificato su Windows, contatta un IP russo e invia l'archivio delle password'. Mappa i passaggi su 4 tattiche del MITRE ATT&CK."
+            },
+            {
+                id: "CHAL-10",
+                title: "Analisi Log XDR (PowerShell)",
+                icon: "search", // Usiamo search, in react era Search per emerald-400
+                iconColor: "text-emerald-400",
+                description: "Il sistema XDR genera un alert critico: powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand JABzAD0ATgBlAHcALQBPAGIAagBl... Decodifica logicamente l'intento dell'attaccante e definisci l'azione di contenimento immediata."
+            },
+            {
+                id: "CHAL-11",
+                title: "Compliance e Notifica Ransomware",
+                icon: "lock",
+                iconColor: "text-rose-400",
+                description: "L'azienda subisce un ransomware che cifra i dati dei clienti. Agendo come CISO, basandoti sulle direttive europee (NIS2/GDPR), stila una bozza dei 3 punti fondamentali da comunicare al CSIRT Nazionale/Garante entro le prime 72 ore."
+            },
+            {
+                id: "CHAL-12",
+                title: "Principi Operativi di Sicurezza",
+                icon: "check-circle",
+                iconColor: "text-blue-500",
+                description: "Ti viene affidato un server web Linux critico. Spiega dettagliatamente come applicheresti la triade 'Safety first, little often, double check' alle procedure di patching, gestione dei permessi e analisi dei log per il prossimo anno."
+            }
+        ];
+
+        // Riferimenti DOM
+        const grid = document.getElementById('challenges-grid');
+        const modal = document.getElementById('challenge-modal');
+        const modalId = document.getElementById('modal-id');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalIconContainer = document.getElementById('modal-icon-container');
+        const modalActionBtn = document.getElementById('modal-action-btn');
+
+        // Renderizza la griglia
+        function renderChallenges() {
+            grid.innerHTML = '';
+            challenges.forEach((chal, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all cursor-pointer group flex flex-col h-full shadow-lg";
+                card.onclick = () => openModal(index);
+                
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 group-hover:border-slate-700 transition-colors">
+                            <i data-lucide="${chal.icon}" class="w-6 h-6 ${chal.iconColor}"></i>
+                        </div>
+                        <span class="text-xs font-mono font-medium text-slate-500 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                            ${chal.id}
+                        </span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2 line-clamp-2">
+                        ${chal.title}
+                    </h3>
+                    <p class="text-sm text-slate-400 line-clamp-3 mt-auto">
+                        ${chal.description}
+                    </p>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // Inizializza le icone Lucide dopo aver manipolato il DOM
+            lucide.createIcons();
+        }
+
+        // Apre la modale
+        function openModal(index) {
+            const chal = challenges[index];
+            
+            modalId.textContent = chal.id;
+            modalTitle.textContent = chal.title;
+            modalDesc.textContent = chal.description;
+            
+            // Aggiorna l'icona dinamicamente
+            modalIconContainer.innerHTML = `<i data-lucide="${chal.icon}" class="w-6 h-6 ${chal.iconColor}"></i>`;
+            
+            // Aggiorna l'azione del bottone
+            modalActionBtn.onclick = () => {
+                alert("Qui puoi inserire il link dinamico al form n8n:\n\nn8n.tuodominio.it/form?challenge=" + chal.id);
+            };
+
+            modal.classList.remove('hidden');
+            
+            // Re-inizializza le icone per processare la nuova icona nella modale
+            lucide.createIcons();
+        }
+
+        // Chiude la modale
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        // Chiude la modale cliccando fuori (sullo sfondo scuro)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Chiudi con il tasto ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Inizializzazione al caricamento
+        window.onload = renderChallenges;
+    </script>
+</body>
+</html>
